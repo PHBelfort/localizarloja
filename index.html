@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu de Seleção</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .menu-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 200px;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            margin-top: 10px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .menu-container {
+                flex-direction: column;
+            }
+
+            select {
+                width: 100%;
+            }
+
+            table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Seleção de Estado, Cidade e Loja</h2>
+
+    <!-- Contêiner para alinhar os selects lado a lado -->
+    <div class="menu-container">
+        <!-- Primeiro menu: Estados -->
+        <select id="estado" onchange="atualizarCidades()">
+            <option value="">Selecione o Estado</option>
+            <option value="RO">Rondônia</option>
+            <option value="AC">Acre</option>
+            <option value="AM">Amazonas</option>
+        </select>
+
+        <!-- Segundo menu: Cidades -->
+        <select id="cidade" class="hidden" onchange="mostrarLojas()">
+            <option value="">Selecione a Cidade</option>
+        </select>
+
+        <!-- Terceiro menu: Lojas -->
+        <select id="loja" class="hidden" onchange="mostrarLojas()">
+            <option value="todas">Todas as Lojas</option>
+            <option value="mega">Loja Mega</option>
+            <option value="ultra">Loja Ultra</option>
+            <option value="maxi">Loja Maxi</option>
+        </select>
+    </div>
+
+    <!-- Barra de Pesquisa -->
+    <div class="search-bar hidden">
+        <input type="text" id="pesquisa" onkeyup="filtrarTabela()" placeholder="Pesquisar na tabela...">
+    </div>
+
+    <!-- Tabela de Endereços -->
+    <table id="tabela-lojas" class="hidden">
+        <thead>
+            <tr>
+                <th>Cidade</th>
+                <th>Endereço</th>
+                <th>Loja</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-corpo">
+        </tbody>
+    </table>
+
+    <script>
+        // Dados fictícios de cidades e lojas
+        const cidadesPorEstado = {
+            RO: ["Porto Velho", "Ji-Paraná", "Ariquemes"],
+            AC: ["Rio Branco", "Cruzeiro do Sul"],
+            AM: ["Manaus", "Parintins"]
+        };
+
+        const lojasPorCidade = {
+            "Porto Velho": [
+                { endereco: "Rua A, 123", loja: "Loja Mega" },
+                { endereco: "Av. B, 456", loja: "Loja Ultra" }
+            ],
+            "Ji-Paraná": [
+                { endereco: "Rua C, 789", loja: "Loja Maxi" }
+            ],
+            "Ariquemes": [
+                { endereco: "Av. D, 101", loja: "Loja Mega" }
+            ],
+            "Rio Branco": [
+                { endereco: "Rua E, 202", loja: "Loja Ultra" }
+            ],
+            "Cruzeiro do Sul": [
+                { endereco: "Rua F, 303", loja: "Loja Maxi" }
+            ],
+            "Manaus": [
+                { endereco: "Av. G, 404", loja: "Loja Mega" },
+                { endereco: "Av. H, 505", loja: "Loja Ultra" }
+            ],
+            "Parintins": [
+                { endereco: "Rua I, 606", loja: "Loja Maxi" }
+            ]
+        };
+
+        // Atualizar cidades com base no estado selecionado
+        function atualizarCidades() {
+            const estado = document.getElementById("estado").value;
+            const cidadeSelect = document.getElementById("cidade");
+            cidadeSelect.innerHTML = '<option value="">Selecione a Cidade</option>';
+
+            if (estado && cidadesPorEstado[estado]) {
+                cidadesPorEstado[estado].forEach(cidade => {
+                    const option = document.createElement("option");
+                    option.value = cidade;
+                    option.textContent = cidade;
+                    cidadeSelect.appendChild(option);
+                });
+
+                cidadeSelect.classList.remove("hidden");
+                document.getElementById("loja").classList.add("hidden");
+                document.getElementById("tabela-lojas").classList.add("hidden");
+                document.querySelector('.search-bar').classList.add("hidden");
+            } else {
+                cidadeSelect.classList.add("hidden");
+                document.getElementById("loja").classList.add("hidden");
+                document.getElementById("tabela-lojas").classList.add("hidden");
+                document.querySelector('.search-bar').classList.add("hidden");
+            }
+        }
+
+        // Mostrar lojas e tabela de endereços
+        function mostrarLojas() {
+            const cidade = document.getElementById("cidade").value;
+            const lojaSelecionada = document.getElementById("loja").value;
+            const tabelaLojas = document.getElementById("tabela-lojas");
+            const tabelaCorpo = document.getElementById("tabela-corpo");
+
+            if (cidade) {
+                document.getElementById("loja").classList.remove("hidden");
+                tabelaCorpo.innerHTML = ""; // Limpa a tabela
+
+                // Filtra lojas por cidade e loja selecionada
+                const lojas = lojasPorCidade[cidade].filter(loja => {
+                    return lojaSelecionada === "todas" || loja.loja.toLowerCase().includes(lojaSelecionada);
+                });
+
+                // Preenche a tabela
+                lojas.forEach(loja => {
+                    const tr = document.createElement("tr");
+                    const tdCidade = document.createElement("td");
+                    const tdEndereco = document.createElement("td");
+                    const tdLoja = document.createElement("td");
+
+                    tdCidade.textContent = cidade;
+                    tdEndereco.textContent = loja.endereco;
+                    tdLoja.textContent = loja.loja;
+
+                    tr.appendChild(tdCidade);
+                    tr.appendChild(tdEndereco);
+                    tr.appendChild(tdLoja);
+                    tabelaCorpo.appendChild(tr);
+                });
+
+                tabelaLojas.classList.remove("hidden");
+                document.querySelector('.search-bar').classList.remove("hidden");
+            } else {
+                tabelaLojas.classList.add("hidden");
+                document.querySelector('.search-bar').classList.add("hidden");
+            }
+        }
+
+        // Função de filtrar a tabela com base na barra de pesquisa
+        function filtrarTabela() {
+            const input = document.getElementById("pesquisa");
+            const filtro = input.value.toLowerCase();
+            const tabela = document.getElementById("tabela-lojas");
+            const linhas = tabela.getElementsByTagName("tr");
+
+            for (let i = 1; i < linhas.length; i++) { // Pular o cabeçalho
+                const colunas = linhas[i].getElementsByTagName("td");
+                let exibirLinha = false;
+
+                // Verifica se algum valor na linha corresponde ao filtro
+                for (let j = 0; j < colunas.length; j++) {
+                    if (colunas[j]) {
+                        const valorTexto = colunas[j].textContent || colunas[j].innerText;
+                        if (valorTexto.toLowerCase().indexOf(filtro) > -1) {
+                            exibirLinha = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Exibe ou oculta a linha com base na correspondência
+                linhas[i].style.display = exibirLinha ? "" : "none";
+            }
+        }
+    </script>
+
+</body>
+</html>
